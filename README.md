@@ -31,6 +31,9 @@ python cnki_search.py search 碳排放 --pages 3 --json out.json
 
 # 专业检索：知网检索表达式透传（AND/OR/NOT、% 通配、+ 并列、() 分组）
 python cnki_search.py expert "TI='知识图谱' AND AU='刘峤'"
+
+# 页码范围：取第 3-4 页（--start-page 起点，--pages 页数）
+python cnki_search.py search 大语言模型 --start-page 3 --pages 2
 ```
 
 退出码：0 成功；2 验证码未通过；3 无结果；1 其他错误。
@@ -53,6 +56,14 @@ python cnki_search.py expert "TI='知识图谱' AND AU='刘峤'"
 `relevance`(相关度=FFD) / `time`(发表时间=PT，默认) / `cited`(被引=CF) /
 `download`(下载=DFR) / `overall`(综合=ZH)，均为降序。知网侧限制：排序只在
 800 万条记录以内有效。
+
+## 页码范围（`--start-page` + `--pages`）
+
+每页固定 20 条（知网 pageSize 固定）。`--start-page N --pages M` 取第 N 页起
+共 M 页。`--start-page 1 --pages 10` = 前 200 条。知网翻页上限 300 页
+（约 6000 条），排序只在 800 万条内有效。底层实现：boolSearch=true 的搜索
+触发形态仅对第 1 页有效（pageNum>0 直接回空），工具先触发搜索拿 turnpage
+令牌，再从起点页起用翻页形态取数，跳页也能直接取。
 
 ## 专业检索（`expert` 子命令）
 

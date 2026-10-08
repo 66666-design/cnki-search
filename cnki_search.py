@@ -10,6 +10,7 @@
   python cnki_search.py search 大语言模型 --field AU --sort cited
   python cnki_search.py search 碳排放 --pages 3 --json out.json  # 多页
   python cnki_search.py expert "TI='知识图谱' AND AU='刘峤'"      # 专业检索表达式
+  python cnki_search.py search 大语言模型 --start-page 3 --pages 2  # 取第 3-4 页
 
 字段(--field): SU=主题(默认) TKA=篇关摘 TI=篇名 KY=关键词 FT=全文 AU=作者
   FI=第一作者 RP=通讯作者 AF=作者单位 FU=基金 AB=摘要 CO=小标题
@@ -34,12 +35,15 @@ def main():
     p_s.add_argument("--pages", type=int, default=1)
     p_s.add_argument("--field", choices=list(FIELD_LABEL), default="SU")
     p_s.add_argument("--sort", choices=list(SORT_CODES), default="time")
+    p_s.add_argument("--start-page", type=int, default=1, dest="start_page",
+                     help="从第几页开始取（1 起）；与 --pages 组合定义页码范围")
     p_s.add_argument("--json", default="")
 
     p_e = sub.add_parser("expert", help="专业检索：知网检索表达式透传")
     p_e.add_argument("expr")
     p_e.add_argument("--pages", type=int, default=1)
     p_e.add_argument("--sort", choices=list(SORT_CODES), default="time")
+    p_e.add_argument("--start-page", type=int, default=1, dest="start_page")
     p_e.add_argument("--json", default="")
 
     args = ap.parse_args()
@@ -48,9 +52,9 @@ def main():
     cnki = CNKI(state_file=Path(__file__).parent / "_cnki_state.json")
     try:
         if args.cmd == "expert":
-            rows = cnki.expert_search(args.expr, args.pages, args.sort)
+            rows = cnki.expert_search(args.expr, args.pages, args.sort, args.start_page)
         else:
-            rows = cnki.search(args.keyword, args.pages, args.field, args.sort)
+            rows = cnki.search(args.keyword, args.pages, args.field, args.sort, args.start_page)
         if not rows:
             print("无结果", file=sys.stderr)
             return 3
